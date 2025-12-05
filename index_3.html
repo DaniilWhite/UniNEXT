@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Поиск по специальностям</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #020617;
+            color: white;
+            padding: 40px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .search-box {
+            max-width: 500px;
+            margin: 0 auto 40px;
+            display: flex;
+            gap: 10px;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 12px 18px;
+            border-radius: 8px;
+            border: none;
+            background: #2563eb;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .program-card {
+            background: #1e293b;
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .highlight {
+            color: #22c55e;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .city {
+            font-size: 14px;
+            opacity: 0.7;
+        }
+
+        .history, .achievements {
+            margin-top: 10px;
+            font-size: 14px;
+            line-height: 1.4;
+            opacity: 0.85;
+        }
+
+        .empty {
+            text-align: center;
+            opacity: 0.6;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🔎 Поиск по академическим программам</h1>
+
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Например: IT, Data, Cyber...">
+        <button onclick="searchPrograms()">Найти</button>
+    </div>
+
+    <div id="results"></div>
+
+    <!-- JSON с историей и достижениями всех 10 университетов -->
+    <script id="universitiesData" type="application/json">
+        {
+          "universities": [
+            {
+              "name": "Назарбаев Университет (NU)",
+              "city": "Астана",
+              "program_count": 50,
+              "avg_tuition_usd": 12000,
+              "popular_specialties": ["Computer Science", "Robotics & AI", "Mechanical Engineering", "Medicine", "Biotechnology"],
+              "min_ENT_score": 120,
+              "history": "Основан в 2010 году по инициативе первого Президента Казахстана, быстро стал ведущим исследовательским университетом страны.",
+              "achievements": "Высокие позиции в мировых рейтингах QS, активное сотрудничество с MIT и Университетом Карнеги-Меллон."
+            },
+            {
+              "name": "Казахский Национальный Университет имени аль-Фараби (КазНУ)",
+              "city": "Алматы",
+              "program_count": 190,
+              "avg_tuition_usd": 1800,
+              "popular_specialties": ["IT", "Международные отношения", "Журналистика"],
+              "min_ENT_score": 100,
+              "history": "Основан в 1934 году как Казахский государственный университет, один из старейших университетов Казахстана.",
+              "achievements": "Выпускники занимают ключевые позиции в науке и государственном управлении."
+            },
+            {
+              "name": "Satbayev University",
+              "city": "Алматы",
+              "program_count": 120,
+              "avg_tuition_usd": 2000,
+              "popular_specialties": ["Нефтегазовое дело", "IT", "Инженерия", "Кибербезопасность"],
+              "min_ENT_score": 95,
+              "history": "Основан в 1934 году как Горный институт, специализируется на инженерных и технических направлениях.",
+              "achievements": "Известен как ведущий технический университет Казахстана с сильной подготовкой инженеров."
+            },
+            {
+              "name": "Казахско-Британский Технический Университет (KBTU)",
+              "city": "Алматы",
+              "program_count": 45,
+              "avg_tuition_usd": 3500,
+              "popular_specialties": ["IT", "Big Data", "Финансы", "Нефтегазовое дело", "Кибербезопасность"],
+              "min_ENT_score": 110,
+              "history": "Основан в 2000 году совместно с правительством Великобритании, ориентирован на бизнес и технологии.",
+              "achievements": "Сильная международная программа, сотрудничество с британскими университетами."
+            },
+            {
+              "name": "Евразийский Национальный Университет имени Л.Н. Гумилёва (ЕНУ)",
+              "city": "Астана",
+              "program_count": 160,
+              "avg_tuition_usd": 1700,
+              "popular_specialties": ["Международные отношения", "Право", "IT", "Прикладная математика"],
+              "min_ENT_score": 95,
+              "history": "Основан в 1996 году, назван в честь историка Л.Н. Гумилёва.",
+              "achievements": "Признан одним из ведущих гуманитарных и социальных университетов Казахстана."
+            },
+            {
+              "name": "KIMEP University",
+              "city": "Алматы",
+              "program_count": 35,
+              "avg_tuition_usd": 5000,
+              "popular_specialties": ["Бизнес и аналитика", "Экономика", "Юриспруденция", "Государственное управление"],
+              "min_ENT_score": 105,
+              "history": "Основан в 1992 году, акцент на бизнес и социальные науки по западной модели.",
+              "achievements": "Признан лучшим бизнес-университетом Центральной Азии, выпускники работают в международных компаниях."
+            },
+            {
+              "name": "Астана IT University (AITU)",
+              "city": "Астана",
+              "program_count": 20,
+              "avg_tuition_usd": 2600,
+              "popular_specialties": ["Software Engineering", "Cybersecurity", "Data Science", "IT Management"],
+              "min_ENT_score": 90,
+              "history": "Основан в 2018 году как специализированный IT-университет с акцентом на современные технологии.",
+              "achievements": "Сотрудничество с IT-компаниями, сильный практико-ориентированный подход."
+            },
+            {
+              "name": "Suleyman Demirel University (SDU)",
+              "city": "Каскелен",
+              "program_count": 40,
+              "avg_tuition_usd": 2500,
+              "popular_specialties": ["Computer Science", "Education", "Finance", "Mathematics"],
+              "min_ENT_score": 95,
+              "history": "Основан в 1996 году, назван в честь турецкого политика Сулеймана Демиреля.",
+              "achievements": "Акцент на международное сотрудничество и подготовку специалистов для бизнеса и науки."
+            },
+            {
+              "name": "МУИТ (Международный Университет Информационных Технологий)",
+              "city": "Алматы",
+              "program_count": 30,
+              "avg_tuition_usd": 2200,
+              "popular_specialties": ["IT", "Информационная безопасность", "Big Data", "Мобильная разработка"],
+              "min_ENT_score": 85,
+              "history": "Основан в 2009 году, специализируется на подготовке IT-специалистов для Казахстана и СНГ.",
+              "achievements": "Сильная практика и сотрудничество с IT-компаниями, регулярные хакатоны и конкурсы."
+            },
+            {
+              "name": "UIB (University of International Business)",
+              "city": "Алматы",
+              "program_count": 50,
+              "avg_tuition_usd": 3000,
+              "popular_specialties": ["Маркетинг", "Экономика", "IT Management", "Финансы"],
+              "min_ENT_score": 90,
+              "history": "Основан в 1996 году, фокус на международном бизнес-образовании и управлении.",
+              "achievements": "Выпускники работают в международных компаниях, сотрудничество с зарубежными университетами."
+            }
+          ]
+        }
+    </script>
+
+    <script>
+        let universitiesData = JSON.parse(
+            document.getElementById("universitiesData").textContent
+        ).universities;
+
+        function searchPrograms() {
+            const input = document.getElementById("searchInput").value.toLowerCase();
+            const resultBox = document.getElementById("results");
+            resultBox.innerHTML = "";
+
+            if (!input) return;
+
+            let found = false;
+
+            universitiesData.forEach(university => {
+                university.popular_specialties.forEach(spec => {
+                    if (spec.toLowerCase().includes(input)) {
+                        found = true;
+
+                        const block = document.createElement("div");
+                        block.className = "program-card";
+
+                        block.innerHTML = `
+                  <div class="highlight">${spec}</div>
+                  <div class="city">🎓 ${university.name}</div>
+                  <div class="city">📍 ${university.city}</div>
+                  <div class="history"><strong>История:</strong> ${university.history}</div>
+                  <div class="achievements"><strong>Достижения:</strong> ${university.achievements}</div>
+                `;
+
+                        resultBox.appendChild(block);
+                    }
+                });
+            });
+
+            if (!found) {
+                resultBox.innerHTML = `<div class="empty">❌ Ничего не найдено</div>`;
+            }
+        }
+    </script>
+
+</body>
+</html>
